@@ -24,11 +24,11 @@ Make sure you have the following installed:
 
 ## Project Structure
 
-- `Query1.js`: Counts tweets that are not retweets or replies.
-- `Query2.js`: Finds the top 10 users by their number of followers.
-- `Query3.js`: Finds the user with the most tweets.
-- `Query4.js`: Finds the top 10 users with the highest average retweets, if they have tweeted more than three times.
-- `Query5.js`: Separates user information into a different collection and creates a tweets-only collection that references users by their user ID.
+- `Query-1.js`: Counts tweets that are not retweets or replies.
+- `Query-2.js`: Finds the top 10 users by their number of followers.
+- `Query-3.js`: Finds the user with the most tweets.
+- `Query-4.js`: Finds the top 10 users with the highest average retweets, if they have tweeted more than three times.
+- `Query-5.js`: Separates user information into a different collection and creates a tweets-only collection that references users by their user ID.
 
 ## Setup and Installation
 
@@ -53,7 +53,7 @@ Each query is a separate script that you can run with Node.js.
 
 To run Query1.js, execute:
 ```sh
-node Query1.js
+node Query-1.js
 ```
 This will output the number of tweets that are neither retweets nor replies.
 
@@ -61,7 +61,7 @@ This will output the number of tweets that are neither retweets nor replies.
 
 To run Query2.js, execute:
 ```sh
-node Query2.js
+node Query-2.js
 ```
 This will return the top 10 users by their number of followers.
 
@@ -69,7 +69,7 @@ This will return the top 10 users by their number of followers.
 
 To run Query3.js, execute:
 ```sh
-node Query3.js
+node Query-3.js
 ```
 This will display the user with the most tweets.
 
@@ -77,7 +77,7 @@ This will display the user with the most tweets.
 
 To run Query4.js, execute:
 ```sh
-node Query4.js
+node Query-4.js
 ```
 This will return the top 10 users with the most average retweets, who have tweeted more than three times.
 
@@ -85,7 +85,7 @@ This will return the top 10 users with the most average retweets, who have tweet
 
 To run Query5.js, execute:
 ```sh
-node Query5.js
+node Query-5.js
 ```
 This script will separate the user information into a new collection named `user` and create a `Tweets_Only` collection that references users by ID.
 
