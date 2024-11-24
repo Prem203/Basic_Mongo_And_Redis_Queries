@@ -97,7 +97,7 @@ node Query-5.js
 ```
 This script will create a structure that lets you get all the tweets for an specific user.
 
-### **Redis Example**:
+### **Example Redis Structure for Query 5**:
 
 1. **List of Tweet IDs for a User**:
    - Key: `tweets:sgeoviz`
