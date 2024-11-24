@@ -1,33 +1,22 @@
-import { MongoClient } from 'mongodb';
+import { createClient } from "redis";
+import { getFavoritedCount } from "./db/myMongodb.js";
 
-async function main() {
-    const uri = "mongodb://localhost:27017";
-    const client = new MongoClient(uri);
+const client = createClient();
 
-    try {
-        await client.connect();
-        const collection = client.db('ieeevisTweets').collection('tweet');
+client.on("error", (err) => {
+  console.log("Error " + err);
+});
 
-        // Get top 10 screen names by follower count
-        const topUsers = await collection.aggregate([
-            {
-                $group: {
-                    _id: "$user.screen_name",
-                    followers: { $max: "$user.followers_count" }
-                }
-            },
-            {
-                $sort: { followers: -1 }
-            },
-            {
-                $limit: 10
-            }
-        ]).toArray();
+await client.connect();
 
-        console.log("Top 10 screen names by their number of followers:", topUsers);
-    } finally {
-        await client.close();
-    }
+const favorites = await getFavoritedCount();
+await client.set("favoritesSum", "0");
+for (let f of favorites) {
+  await client.incrBy("favoritesSum" , f.favorite_count);
 }
 
-main().catch(console.error);
+const count = await client.get("favoritesSum");
+
+console.log(`There were ${count} favorites`);
+
+await client.quit();

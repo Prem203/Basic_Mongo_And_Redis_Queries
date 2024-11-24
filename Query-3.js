@@ -1,33 +1,21 @@
-import { MongoClient } from 'mongodb';
+import { createClient } from "redis";
+import { getUser } from "./db/myMongodb.js";
 
-async function main() {
-    const uri = "mongodb://localhost:27017";
-    const client = new MongoClient(uri);
+const client = createClient();
 
-    try {
-        await client.connect();
-        const collection = client.db('ieeevisTweets').collection('tweet');
+client.on("error", (err) => {
+  console.log("Error " + err);
+});
 
-        // Find the user with the most tweets
-        const mostTweetsUser = await collection.aggregate([
-            {
-                $group: {
-                    _id: "$user.screen_name",
-                    count: { $sum: 1 }
-                }
-            },
-            {
-                $sort: { count: -1 }
-            },
-            {
-                $limit: 1
-            }
-        ]).toArray();
+await client.connect();
 
-        console.log("User with the most tweets:", mostTweetsUser[0]);
-    } finally {
-        await client.close();
-    }
+const users = await getUser();
+for (let u of users) {
+  await client.sAdd("users", u);
 }
 
-main().catch(console.error);
+const userCount = await client.sCard("users");
+
+  console.log(`There are ${userCount} unique users in Redis.`);
+
+await client.quit();

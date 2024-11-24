@@ -1,37 +1,37 @@
-import { MongoClient } from 'mongodb';
+import { createClient } from "redis";
+import { getUserLeaderboard } from "./db/myMongodb.js"; // Using getUserLeaderboard
 
-async function main() {
-    const uri = "mongodb://localhost:27017";
-    const client = new MongoClient(uri);
+const client = createClient();
 
-    try {
-        await client.connect();
-        const collection = client.db('ieeevisTweets').collection('tweet');
+client.on("error", (err) => {
+  console.error("Redis Error: " + err);
+});
 
-        // Get top 10 users with the most average retweets (with more than 3 tweets)
-        const topUsers = await collection.aggregate([
-            {
-                $group: {
-                    _id: "$user.screen_name",
-                    avgRetweets: { $avg: "$retweet_count" },
-                    tweetCount: { $sum: 1 }
-                }
-            },
-            {
-                $match: { tweetCount: { $gt: 3 } }
-            },
-            {
-                $sort: { avgRetweets: -1 }
-            },
-            {
-                $limit: 10
-            }
-        ]).toArray();
+try {
+  await client.connect();
 
-        console.log("Top 10 users with the most average retweets (more than 3 tweets):", topUsers);
-    } finally {
-        await client.close();
+  // Fetch the top 10 users from MongoDB
+  const tweetCounts = await getUserLeaderboard();
+
+  // Add users to the Redis leaderboard
+  for (let user of tweetCounts) {
+    if (user._id) {
+      await client.zAdd("leaderboard", {
+        score: user.tweetCount,
+        value: user._id
+      });
     }
-}
+  }
 
-main().catch(console.error);
+  // Retrieve the top 10 users from the leaderboard (sorted set)
+  const topUsers = await client.zRangeWithScores("leaderboard", 0, 9, { REV: true });
+
+  console.log("Top 10 Users with Most Tweets:");
+  topUsers.forEach((user, index) => {
+    console.log(`#${index + 1}: ${user.value} with ${user.score} tweets`);
+  });
+} catch (error) {
+  console.error("An error occurred:", error);
+} finally {
+  await client.quit();
+}

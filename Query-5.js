@@ -1,48 +1,47 @@
-import { MongoClient } from 'mongodb';
+import { createClient } from "redis";
+import { getAllUsersTweets } from "./db/myMongodb.js"; // Assuming the MongoDB function is in this path
 
-async function main() {
-    const uri = "mongodb://localhost:27017";
-    const client = new MongoClient(uri);
+const client = createClient();
 
-    try {
-        await client.connect();
-        const db = client.db('ieeevisTweets');
-        const tweetsCollection = db.collection('tweet');
+client.on("error", (err) => {
+  console.error("Redis Error: " + err);
+});
 
-        // Step 1: Create a unique users collection
-        const users = await tweetsCollection.aggregate([
-            {
-                $group: {
-                    _id: "$user.id_str",
-                    screen_name: { $first: "$user.screen_name" },
-                    name: { $first: "$user.name" },
-                    followers_count: { $first: "$user.followers_count" }
-                    // Add any other fields you need
-                }
-            }
-        ]).toArray();
+async function addTweetsToRedis() {
+  try {
+    await client.connect();
 
-        const usersCollection = db.collection('user');
-        await usersCollection.insertMany(users);
+    // Get all user tweets from MongoDB
+    const allUserTweets = await getAllUsersTweets();
 
-        // Step 2: Create a new Tweets_Only collection without embedded user information
-        const tweetsOnlyCollection = db.collection('Tweets_Only');
-        const tweets = await tweetsCollection.find().toArray();
+    for (let screenName in allUserTweets) {
+      const tweets = allUserTweets[screenName];
 
-        const tweetsWithoutUsers = tweets.map(tweet => {
-            const { user, ...rest } = tweet;
-            return {
-                ...rest,
-                user_id: user.id_str // Reference to the user collection
-            };
+      // Add each tweet ID to the Redis list for this user
+      for (let tweet of tweets) {
+        const tweetId = tweet.id_str;
+
+        // Add the tweet ID to the user's list of tweet IDs
+        await client.rPush(`tweets:${screenName}`, tweetId);
+
+        // Store the tweet's details in a Redis hash
+        await client.hSet(`tweet:${tweetId}`, {
+          text: tweet.text,
+          created_at: tweet.created_at,
+          user_name: tweet.user.name,
+          screen_name: tweet.user.screen_name,
+          tweet_id: tweet.id_str,
+          favorite_count: tweet.favorite_count,
+          retweet_count: tweet.retweet_count,
+          source: tweet.source
         });
-
-        await tweetsOnlyCollection.insertMany(tweetsWithoutUsers);
-
-        console.log("Users separated into a new collection, and Tweets_Only collection created.");
-    } finally {
-        await client.close();
+      }
     }
-}
 
-main().catch(console.error);
+    console.log("Successfully added all tweets to Redis.");
+  } catch (error) {
+    console.error("An error occurred:", error);
+  } finally {
+    await client.quit();
+  }
+}

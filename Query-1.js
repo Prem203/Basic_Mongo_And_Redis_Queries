@@ -1,31 +1,22 @@
-import { MongoClient } from 'mongodb';
+import { createClient } from "redis";
+import { getTweets } from "./db/myMongodb.js";
 
-/*
- * Requires the MongoDB Node.js Driver
- * https://mongodb.github.io/node-mongodb-native
- */
+const client = createClient();
 
-async function main() {
-  const uri = "mongodb://localhost:27017";
-  const client = new MongoClient(uri);
+client.on("error", (err) => {
+  console.log("Error " + err);
+});
 
-  try {
-    await client.connect();
-    const collection = client.db('ieeevisTweets').collection('tweet');
+await client.connect();
 
-    // Find all tweets that are not retweets and not replies
-    const filter = {
-      'retweeted_status': {
-        '$exists': false
-      },
-      'in_reply_to_status_id': null
-    };
-
-    const result = await collection.find(filter).toArray();
-    console.log("Number of tweets which are not retweets or replies are:", result.length);
-  } finally {
-    await client.close();
-  }
+const tweets = await getTweets();
+await client.set("tweetCount", "0");
+for (let t of tweets) {
+  await client.incr("tweetCount");
 }
 
-main().catch(console.error);
+const count = await client.get("tweetCount");
+
+console.log(`There were ${count} tweets`);
+
+await client.quit();
