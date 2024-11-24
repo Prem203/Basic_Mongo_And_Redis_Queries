@@ -57,7 +57,7 @@ Make sure you have the following installed:
 
 Each query is a separate script that you can run with Node.js.
 
-### **Query 1: Count Tweets That Are Not Retweets or Replies**
+### **Query 1: How many tweets are there?**
 
 To run `Query-1.js`, execute:
 ```sh
@@ -65,7 +65,7 @@ node Query-1.js
 ```
 This will output the number of tweets.
 
-### **Query 2: Top 10 Users by Number of Followers**
+### **Query 2: Compute and print the total number of favorites in the dataset.**
 
 To run `Query-2.js`, execute:
 ```sh
@@ -73,7 +73,7 @@ node Query-2.js
 ```
 This will return the total number of favorites in the dataset.
 
-### **Query 3: Find the User with the Most Tweets**
+### **Query 3: Compute how many distinct users are there in the dataset.**
 
 To run `Query-3.js`, execute:
 ```sh
@@ -81,7 +81,7 @@ node Query-3.js
 ```
 This will display how many distinct users are there in the dataset.
 
-### **Query 4: Find Top 10 Users with Most Average Retweets**
+### **Query 4: Create a leaderboard with the top 10 users with more tweets.**
 
 To run `Query-4.js`, execute:
 ```sh
@@ -89,7 +89,7 @@ node Query-4.js
 ```
 This will return the leaderboard with the top 10 users with more tweets.
 
-### **Query 5: Separate User Information into Different Collection**
+### **Query 5: Separates user information into a different collection and creates a tweets-only collection that references users by their user ID.**
 
 To run `Query-5.js`, execute:
 ```sh
